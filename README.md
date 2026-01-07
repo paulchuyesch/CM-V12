@@ -13,8 +13,6 @@ Este proyecto es una herramienta para calcular multas y sanciones en el ámbito 
 *   **Backend:**
     *   Python
     *   FastAPI
-    *   Python
-    *   FastAPI
     *   httpx (para envío a Webhooks)
 
 ## Cómo iniciar el proyecto localmente
