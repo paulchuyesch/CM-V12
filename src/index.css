@@ -608,4 +608,191 @@ Primary: Support Brigades Blue #0056B4
   .animate-celebration-shake {
     animation: celebration-shake 0.5s ease-out;
   }
+
+  /* ============================================
+     LOSS SALIENCE - Risk Widget Animations
+     ============================================ */
+
+  /* Risk pulse animation (red glow) */
+  @keyframes risk-pulse {
+
+    0%,
+    100% {
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    50% {
+      box-shadow: 0 4px 25px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.3);
+      border-color: rgba(239, 68, 68, 0.6);
+    }
+  }
+
+  .animate-risk-pulse {
+    animation: risk-pulse 0.5s ease-in-out 3;
+  }
+
+  /* Shake animation for warning icon */
+  @keyframes shake {
+
+    0%,
+    100% {
+      transform: translateX(0) rotate(0deg);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+      transform: translateX(-2px) rotate(-5deg);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+      transform: translateX(2px) rotate(5deg);
+    }
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  /* Float down animation - dinero cayendo desde el borde inferior del widget */
+  @keyframes float-down {
+    0% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(35px);
+    }
+  }
+
+  .animate-float-down {
+    animation: float-down 1.8s ease-out forwards;
+  }
+
+  .animate-float-up {
+    animation: float-down 1.8s ease-out forwards;
+  }
+
+  /* Number grow animation */
+  @keyframes number-grow {
+    0% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.15);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .animate-number-grow {
+    animation: number-grow 0.4s ease-out;
+  }
+
+  /* ============================================
+     HEADER RISK WIDGET - Intense Animations
+     ============================================ */
+
+  /* Intense shake for header risk widget */
+  @keyframes shake-intense {
+
+    0%,
+    100% {
+      transform: translateX(0) rotate(0deg);
+    }
+
+    10% {
+      transform: translateX(-3px) rotate(-8deg);
+    }
+
+    20% {
+      transform: translateX(3px) rotate(8deg);
+    }
+
+    30% {
+      transform: translateX(-3px) rotate(-6deg);
+    }
+
+    40% {
+      transform: translateX(3px) rotate(6deg);
+    }
+
+    50% {
+      transform: translateX(-2px) rotate(-4deg);
+    }
+
+    60% {
+      transform: translateX(2px) rotate(4deg);
+    }
+
+    70% {
+      transform: translateX(-2px) rotate(-2deg);
+    }
+
+    80% {
+      transform: translateX(2px) rotate(2deg);
+    }
+
+    90% {
+      transform: translateX(-1px) rotate(-1deg);
+    }
+  }
+
+  .animate-shake-intense {
+    animation: shake-intense 0.8s ease-out;
+  }
+
+  /* Header risk alert with red glow */
+  @keyframes header-risk-alert {
+
+    0%,
+    100% {
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4), 0 0 20px rgba(239, 68, 68, 0.3);
+      transform: scale(1);
+    }
+
+    25% {
+      box-shadow: 0 4px 25px rgba(239, 68, 68, 0.7), 0 0 40px rgba(239, 68, 68, 0.5);
+      transform: scale(1.05);
+    }
+
+    50% {
+      box-shadow: 0 4px 30px rgba(239, 68, 68, 0.8), 0 0 50px rgba(239, 68, 68, 0.6);
+      transform: scale(1.08);
+    }
+
+    75% {
+      box-shadow: 0 4px 25px rgba(239, 68, 68, 0.7), 0 0 40px rgba(239, 68, 68, 0.5);
+      transform: scale(1.05);
+    }
+  }
+
+  .animate-header-risk-alert {
+    animation: header-risk-alert 0.6s ease-in-out 3;
+  }
+
+  /* Mobile floating risk widget - smaller and bottom right */
+  .risk-widget-mobile {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 40;
+  }
+
+  @media (min-width: 768px) {
+    .risk-widget-mobile {
+      display: none;
+    }
+  }
 }

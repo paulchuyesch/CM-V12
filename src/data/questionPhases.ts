@@ -12,139 +12,236 @@ export interface Phase {
     buttonText: string; // Texto del botón
 }
 
+// ============================================
+// MODELO DE RIESGO SUNAFIL - LOSS SALIENCE
+// ============================================
+
+export type RiskLevel = 'Leve' | 'Grave' | 'Muy Grave';
+
+export interface QuestionRisk {
+    riskLevel: RiskLevel;
+    baseUIT: number; // UITs base según tabla SUNAFIL
+    description: string; // Descripción de la infracción
+}
+
+// Valor UIT vigente 2024 (actualizar anualmente)
+export const UIT_VALUE = 5150;
+
+// Multiplicador por tamaño de empresa según número de trabajadores
+export const getCompanyMultiplier = (numTrabajadores: number): number => {
+    if (numTrabajadores <= 10) return 1;      // Micro
+    if (numTrabajadores <= 100) return 1.5;   // Pequeña
+    if (numTrabajadores <= 200) return 2;     // Mediana
+    return 2.5;                                // Grande
+};
+
+// Multas base por nivel de riesgo (en UITs) según Tabla SUNAFIL
+export const RISK_LEVEL_FINES: Record<RiskLevel, { min: number; max: number }> = {
+    'Leve': { min: 0.20, max: 1.00 },
+    'Grave': { min: 2.00, max: 10.00 },
+    'Muy Grave': { min: 6.00, max: 25.00 }
+};
+
+// Mapeo de cada pregunta a su nivel de riesgo según normativa SUNAFIL
+export const QUESTION_RISKS: Record<string, QuestionRisk> = {
+    // Fase 1: Organización y Política
+    q1: { riskLevel: 'Grave', baseUIT: 3.0, description: 'No contar con Política de SST documentada' },
+    q2: { riskLevel: 'Leve', baseUIT: 0.5, description: 'No difundir la política a trabajadores' },
+    q3: { riskLevel: 'Leve', baseUIT: 0.5, description: 'Falta de liderazgo visible de la alta dirección' },
+    q4: { riskLevel: 'Grave', baseUIT: 5.0, description: 'No contar con RISST aprobado' },
+    q5: { riskLevel: 'Leve', baseUIT: 0.5, description: 'No entregar RISST a trabajadores' },
+    q6: { riskLevel: 'Muy Grave', baseUIT: 10.0, description: 'No contar con Comité o Supervisor de SST' },
+    q7: { riskLevel: 'Grave', baseUIT: 3.0, description: 'Proceso de elección del CSST no documentado' },
+    q8: { riskLevel: 'Grave', baseUIT: 4.0, description: 'Miembros del CSST sin capacitación' },
+    q9: { riskLevel: 'Grave', baseUIT: 3.0, description: 'CSST sin reuniones mensuales o Libro de Actas' },
+    q10: { riskLevel: 'Grave', baseUIT: 4.0, description: 'No realizar estudio de línea base' },
+    q11: { riskLevel: 'Muy Grave', baseUIT: 12.0, description: 'No contar con Matriz IPERC' },
+    q12: { riskLevel: 'Grave', baseUIT: 5.0, description: 'IPERC desactualizado' },
+    q13: { riskLevel: 'Grave', baseUIT: 3.0, description: 'Trabajadores sin participación en IPERC' },
+    q14: { riskLevel: 'Grave', baseUIT: 4.0, description: 'No contar con Mapa de Riesgos' },
+
+    // Fase 2: Prevención y Control
+    q15: { riskLevel: 'Grave', baseUIT: 5.0, description: 'No tener Plan Anual de SST con presupuesto' },
+    q16: { riskLevel: 'Grave', baseUIT: 4.0, description: 'No contar con Programa de Capacitaciones' },
+    q17: { riskLevel: 'Muy Grave', baseUIT: 8.0, description: 'No realizar las 4 capacitaciones obligatorias' },
+    q18: { riskLevel: 'Grave', baseUIT: 4.0, description: 'No realizar inducción SST a nuevos trabajadores' },
+    q19: { riskLevel: 'Leve', baseUIT: 1.0, description: 'Capacitaciones sin documentar' },
+    q20: { riskLevel: 'Muy Grave', baseUIT: 10.0, description: 'No aplicar controles de jerarquía IPERC' },
+    q21: { riskLevel: 'Muy Grave', baseUIT: 15.0, description: 'No entregar EPP adecuados' },
+    q22: { riskLevel: 'Grave', baseUIT: 3.0, description: 'Sin registro de entrega de EPP' },
+    q23: { riskLevel: 'Grave', baseUIT: 4.0, description: 'Sin capacitación en uso de EPP' },
+    q24: { riskLevel: 'Muy Grave', baseUIT: 12.0, description: 'Sin PETS para tareas de alto riesgo' },
+    q25: { riskLevel: 'Muy Grave', baseUIT: 10.0, description: 'Sin Plan de Emergencias' },
+    q26: { riskLevel: 'Grave', baseUIT: 5.0, description: 'Brigadas sin conformar o capacitar' },
+    q27: { riskLevel: 'Grave', baseUIT: 4.0, description: 'Sin simulacros de emergencia' },
+
+    // Fase 3: Vigilancia y Mejora
+    q28: { riskLevel: 'Muy Grave', baseUIT: 15.0, description: 'Sin Exámenes Médicos Ocupacionales' },
+    q29: { riskLevel: 'Muy Grave', baseUIT: 10.0, description: 'Sin monitoreo de agentes ocupacionales' },
+    q30: { riskLevel: 'Grave', baseUIT: 5.0, description: 'Sin verificar cumplimiento de contratas' },
+    q31: { riskLevel: 'Leve', baseUIT: 1.0, description: 'Sin seguimiento a objetivos del Plan' },
+    q32: { riskLevel: 'Muy Grave', baseUIT: 10.0, description: 'Sin procedimiento de investigación de accidentes' },
+    q33: { riskLevel: 'Grave', baseUIT: 6.0, description: 'Sin auditoría obligatoria del SGSST' },
+    q34: { riskLevel: 'Muy Grave', baseUIT: 8.0, description: 'Sin registro de accidentes' },
+    q35: { riskLevel: 'Grave', baseUIT: 5.0, description: 'Sin registro de exámenes médicos' },
+    q36: { riskLevel: 'Grave', baseUIT: 4.0, description: 'Sin registro de monitoreo de agentes' },
+    q37: { riskLevel: 'Grave', baseUIT: 3.0, description: 'Sin registro de inspecciones internas' },
+    q38: { riskLevel: 'Leve', baseUIT: 2.0, description: 'Sin registro de estadísticas SST' },
+    q39: { riskLevel: 'Grave', baseUIT: 3.0, description: 'Sin registro de equipos de emergencia' },
+    q40: { riskLevel: 'Grave', baseUIT: 4.0, description: 'Sin registro de capacitaciones' },
+    q41: { riskLevel: 'Grave', baseUIT: 5.0, description: 'Sin registro de auditorías' }
+};
+
+// Función para calcular multa potencial de una pregunta
+export const calculateQuestionFine = (
+    questionId: string,
+    numTrabajadores: number
+): number => {
+    const risk = QUESTION_RISKS[questionId];
+    if (!risk) return 0;
+
+    const multiplier = getCompanyMultiplier(numTrabajadores);
+    return Math.round(risk.baseUIT * UIT_VALUE * multiplier);
+};
+
 // Preguntas exentas para empresas MYPE (micro y pequeña)
 export const PREGUNTAS_EXENTAS_MYPE = ['q36', 'q37', 'q38', 'q39', 'q41'];
 
-// Todas las preguntas organizadas por ID
+// Todas las preguntas organizadas por ID - Tono Consultor Legal
 export const QUESTIONS: Record<string, string> = {
-    q1: '¿Existe una Política de Seguridad y Salud en el Trabajo documentada y firmada?',
-    q2: '¿La política ha sido difundida a todos los trabajadores?',
-    q3: '¿La alta dirección evidencia su liderazgo?',
-    q4: '¿Existe un Reglamento Interno de Seguridad y Salud en el Trabajo aprobado?',
-    q5: '¿Se ha entregado el Reglamento Interno a cada trabajador?',
-    q6: '¿Cuenta con un Comité o Supervisor de Seguridad y Salud en el Trabajo?',
-    q7: '¿El proceso de elección del Comité fue documentado?',
-    q8: '¿Los miembros del Comité o Supervisor han sido capacitados?',
-    q9: '¿El Comité o Supervisor se reúne mensualmente y tiene Libro de Actas?',
-    q10: '¿Se ha realizado un estudio de línea base?',
-    q11: '¿Existe una Matriz de Identificación de Peligros y Evaluación de Riesgos para todos los puestos?',
-    q12: '¿La Matriz de Peligros y Riesgos ha sido actualizada?',
-    q13: '¿Los trabajadores participaron en la identificación de peligros y riesgos?',
-    q14: '¿Se ha elaborado y exhibido un Mapa de Riesgos?',
-    q15: '¿Existe un Plan y Programa Anual de Seguridad y Salud con presupuesto?',
-    q16: '¿Existe un Programa Anual de Capacitaciones?',
-    q17: '¿Se han realizado las 4 capacitaciones obligatorias al año?',
-    q18: '¿Se realiza la inducción de seguridad a todo nuevo trabajador?',
-    q19: '¿Las capacitaciones están documentadas?',
-    q20: '¿Se aplican los controles de seguridad según la jerarquía?',
-    q21: '¿Se entregan los Equipos de Protección Personal adecuados sin costo?',
-    q22: '¿Existe un registro de entrega de Equipos de Protección?',
-    q23: '¿Se capacitó en el uso correcto de los Equipos de Protección?',
-    q24: '¿Existen Procedimientos Escritos de Trabajo Seguro para tareas de alto riesgo?',
-    q25: '¿Cuenta con un Plan de Respuesta ante Emergencias?',
-    q26: '¿Se han conformado y capacitado las brigadas?',
-    q27: '¿Se realizan simulacros de emergencia periódicamente?',
-    q28: '¿Se realizan los Exámenes Médicos Ocupacionales?',
-    q29: '¿Se realiza el monitoreo de agentes (físicos, químicos, etc.)?',
-    q30: '¿Se verifica que las contratas cumplen con la normativa de seguridad?',
-    q31: '¿Se realiza seguimiento a los objetivos del Plan Anual?',
-    q32: '¿Existe un procedimiento para investigación de accidentes?',
-    q33: '¿Se ha realizado la auditoría obligatoria del Sistema de Gestión?',
-    q34: '¿Lleva el Registro de accidentes de trabajo?',
-    q35: '¿Lleva el Registro de exámenes médicos ocupacionales?',
-    q36: '¿Lleva el Registro del monitoreo de agentes?',
-    q37: '¿Lleva el Registro de inspecciones internas de seguridad?',
-    q38: '¿Lleva el Registro de estadísticas de seguridad y salud?',
-    q39: '¿Lleva el Registro de equipos de seguridad o emergencia?',
-    q40: '¿Lleva el Registro de inducción y capacitación?',
-    q41: '¿Lleva el Registro de auditorías?'
+    // Fase 1: Cimentación de la Protección Legal
+    q1: '¿Cuenta su organización con una Política de Seguridad y Salud en el Trabajo formalizada que respalde su cumplimiento ante fiscalizaciones?',
+    q2: '¿Puede evidenciar que todos sus trabajadores conocen y han recibido la Política de Seguridad y Salud?',
+    q3: '¿La gerencia participa activamente en la gestión de seguridad y salud con evidencia documentada?',
+    q4: '¿Su empresa cuenta con un Reglamento Interno de Seguridad y Salud en el Trabajo aprobado que la proteja legalmente?',
+    q5: '¿Puede acreditar la entrega formal del Reglamento Interno de Seguridad a cada trabajador con cargo firmado?',
+    q6: '¿Su organización tiene constituido el Comité o Supervisor de Seguridad y Salud exigido por ley?',
+    q7: '¿Dispone de la documentación completa del proceso de elección del Comité o designación del Supervisor de Seguridad?',
+    q8: '¿Los miembros del Comité o el Supervisor de Seguridad cuentan con la formación acreditada que exige la norma?',
+    q9: '¿El Comité o Supervisor de Seguridad mantiene sesiones periódicas con actas que demuestren su funcionamiento?',
+    q10: '¿Su empresa realizó el diagnóstico inicial del Sistema de Gestión de Seguridad que establece la Ley 29783?',
+    q11: '¿Cuenta con la Matriz de Identificación de Peligros, Evaluación de Riesgos y Controles para cada puesto de trabajo?',
+    q12: '¿Su Matriz de Peligros y Riesgos está vigente y actualizada según los plazos normativos?',
+    q13: '¿Puede demostrar la participación documentada de los trabajadores en la identificación de peligros y riesgos?',
+    q14: '¿Su instalación exhibe el Mapa de Riesgos en un lugar visible como exige la normativa?',
+
+    // Fase 2: Blindaje Operativo y Control de Riesgos
+    q15: '¿Su Plan Anual de Seguridad y Salud cuenta con presupuesto asignado y aprobado por la dirección?',
+    q16: '¿Dispone de un Programa de Capacitaciones planificado que garantice las competencias en seguridad y salud?',
+    q17: '¿Puede acreditar el cumplimiento de las 4 capacitaciones mínimas anuales exigidas por ley?',
+    q18: '¿Todo trabajador nuevo recibe y firma la inducción de seguridad antes de iniciar labores?',
+    q19: '¿Las capacitaciones cuentan con registros que demuestren su ejecución y asistencia?',
+    q20: '¿Su empresa implementa controles de riesgo siguiendo la jerarquía establecida en la norma?',
+    q21: '¿Garantiza la provisión de Equipos de Protección Personal certificados y adecuados a cada riesgo identificado?',
+    q22: '¿Cuenta con registros firmados de entrega de Equipos de Protección que acrediten su asignación?',
+    q23: '¿Los trabajadores fueron instruidos en el uso, cuidado y limitaciones de sus Equipos de Protección?',
+    q24: '¿Las actividades de alto riesgo cuentan con Procedimientos Escritos de Trabajo Seguro?',
+    q25: '¿Su Plan de Emergencias está formalizado y difundido para responder ante contingencias?',
+    q26: '¿Las brigadas de emergencia están constituidas, entrenadas y equipadas?',
+    q27: '¿Puede evidenciar la ejecución de simulacros con la frecuencia que exige la norma?',
+
+    // Fase 3: Estrategia de Defensa y Mejora Continua
+    q28: '¿Sus trabajadores cuentan con Exámenes Médicos Ocupacionales vigentes según protocolo?',
+    q29: '¿Realiza monitoreos de agentes físicos, químicos y biológicos en el ambiente laboral?',
+    q30: '¿Gestiona y verifica el cumplimiento de seguridad de sus contratistas y subcontratistas?',
+    q31: '¿Efectúa medición y seguimiento documentado de los objetivos de seguridad y salud?',
+    q32: '¿Cuenta con un procedimiento formal para investigar accidentes e implementar acciones correctivas?',
+    q33: '¿Ha ejecutado la auditoría del Sistema de Gestión de Seguridad con la periodicidad que establece la ley?',
+    q34: '¿Mantiene actualizado el Registro obligatorio de accidentes e incidentes laborales?',
+    q35: '¿Conserva el Registro de vigilancia de la salud de sus trabajadores?',
+    q36: '¿Documenta los resultados de monitoreos ocupacionales en el registro correspondiente?',
+    q37: '¿Las inspecciones internas de seguridad están registradas y con acciones de seguimiento?',
+    q38: '¿Calcula y registra los indicadores estadísticos de accidentabilidad?',
+    q39: '¿Controla y registra el mantenimiento de equipos de emergencia (extintores, botiquines)?',
+    q40: '¿Administra un registro centralizado de todas las capacitaciones e inducciones impartidas?',
+    q41: '¿Conserva evidencia documental de las auditorías realizadas al Sistema de Gestión?'
 };
 
-// Explicaciones contextuales para cada pregunta (tooltips)
+// Explicaciones contextuales para cada pregunta (tooltips) - Estructura: Definición + Riesgo Legal
 export const QUESTION_TOOLTIPS: Record<string, string> = {
-    q1: 'La Política de SST es un documento firmado por la gerencia que establece el compromiso de la empresa con la seguridad y salud de todos los trabajadores.',
-    q2: 'Todos los trabajadores deben conocer la política. Esto puede hacerse mediante charlas, correos, carteles o firma de recepción.',
-    q3: 'El liderazgo se demuestra cuando la gerencia participa activamente en reuniones de SST, asigna recursos y promueve una cultura de seguridad.',
-    q4: 'El RISST (Reglamento Interno de Seguridad y Salud en el Trabajo) es un documento obligatorio que establece las normas y reglas de seguridad de la empresa.',
-    q5: 'Cada trabajador debe recibir una copia física o digital del RISST y firmar un cargo de recepción.',
-    q6: 'El CSST (Comité de Seguridad y Salud en el Trabajo) es obligatorio para empresas con 20+ trabajadores. Empresas menores requieren un Supervisor de SST.',
-    q7: 'El proceso de elección debe incluir convocatoria, actas de votación, y acta de instalación del CSST debidamente firmadas.',
-    q8: 'Los miembros del comité deben recibir capacitación en temas de SST para ejercer correctamente sus funciones.',
-    q9: 'El CSST debe reunirse mínimo una vez al mes y registrar sus acuerdos en un Libro de Actas legalizado.',
-    q10: 'El estudio de línea base es un diagnóstico inicial que evalúa el estado actual del sistema de gestión de SST en la empresa.',
-    q11: 'La Matriz IPERC identifica los Peligros, Evalúa los Riesgos y establece Controles para cada puesto de trabajo.',
-    q12: 'El IPERC debe actualizarse anualmente o cuando haya cambios en procesos, equipos, incidentes o nueva legislación.',
-    q13: 'Los trabajadores deben participar activamente en la identificación de peligros de sus propios puestos de trabajo.',
-    q14: 'El Mapa de Riesgos es un plano del lugar de trabajo donde se señalan visualmente los peligros y riesgos identificados.',
-    q15: 'El Plan Anual de SST incluye objetivos, metas, actividades y un presupuesto asignado para la gestión de seguridad.',
-    q16: 'El Programa de Capacitaciones debe planificar todas las formaciones en SST que recibirán los trabajadores durante el año.',
-    q17: 'La ley exige mínimo 4 capacitaciones anuales en SST, incluyendo temas como primeros auxilios, uso de extintores, evacuación, etc.',
-    q18: 'Todo trabajador nuevo debe recibir una inducción específica de SST antes de iniciar sus labores.',
-    q19: 'Las capacitaciones deben registrarse con listas de asistencia, temario desarrollado y evaluaciones si aplica.',
-    q20: 'La jerarquía de controles va desde eliminar el peligro hasta usar EPP: Eliminación → Sustitución → Controles de ingeniería → Controles administrativos → EPP.',
-    q21: 'Los EPP (Equipos de Protección Personal) como cascos, guantes, lentes, etc. deben entregarse sin costo al trabajador.',
-    q22: 'Debe existir un registro firmado por cada trabajador al recibir sus EPP, indicando tipo, cantidad y fecha.',
-    q23: 'Los trabajadores deben ser capacitados en el uso, cuidado y mantenimiento correcto de sus EPP.',
-    q24: 'Los PETS (Procedimientos Escritos de Trabajo Seguro) describen paso a paso cómo realizar tareas de alto riesgo de forma segura.',
-    q25: 'El Plan de Emergencias establece los procedimientos a seguir ante sismos, incendios, derrames u otras emergencias.',
-    q26: 'Las brigadas de emergencia (evacuación, primeros auxilios, contra incendios) deben estar conformadas y entrenadas.',
-    q27: 'Los simulacros deben realizarse mínimo 2 veces al año para evaluar y mejorar la respuesta ante emergencias.',
-    q28: 'Los exámenes médicos ocupacionales son obligatorios: pre-ocupacional, periódico y de retiro.',
-    q29: 'El monitoreo mide la exposición a agentes físicos (ruido, iluminación), químicos (gases, polvos) y otros en el ambiente laboral.',
-    q30: 'Las empresas contratistas también deben cumplir con la normativa de SST y la empresa principal debe verificarlo.',
-    q31: 'Se debe medir y revisar periódicamente el avance de los objetivos establecidos en el Plan Anual de SST.',
-    q32: 'Debe existir un procedimiento claro para investigar accidentes e incidentes, identificar causas y prevenir repeticiones.',
-    q33: 'La auditoría del SGSST es obligatoria cada 2 años para empresas de sectores de alto riesgo, según la ley.',
-    q34: 'Registro obligatorio de todos los accidentes de trabajo ocurridos, incluyendo investigación y medidas correctivas.',
-    q35: 'Registro de los exámenes médicos realizados a los trabajadores con sus resultados y recomendaciones.',
-    q36: 'Registro de los monitoreos ocupacionales realizados (ruido, iluminación, agentes químicos, etc.).',
-    q37: 'Registro de las inspecciones internas de seguridad realizadas en las instalaciones.',
-    q38: 'Registro estadístico de accidentes, incidentes y enfermedades ocupacionales (índices de frecuencia, severidad, etc.).',
-    q39: 'Registro y control de extintores, botiquines, equipos de emergencia y su mantenimiento.',
-    q40: 'Registro de todas las inducciones y capacitaciones impartidas a los trabajadores.',
-    q41: 'Registro de las auditorías internas y externas realizadas al sistema de gestión de SST.'
+    q1: 'La Política de Seguridad y Salud es un documento firmado por la gerencia que establece el compromiso de la empresa con la protección de todos los trabajadores. **Riesgo Legal:** Su ausencia es una infracción grave que impide demostrar compromiso preventivo ante SUNAFIL.',
+    q2: 'La política debe ser comunicada a todos los trabajadores mediante charlas, correos, carteles o firma de recepción. **Riesgo Legal:** Sin evidencia de difusión, la empresa no puede demostrar que los trabajadores conocían las reglas de seguridad.',
+    q3: 'El liderazgo se demuestra cuando la gerencia participa en reuniones de seguridad, asigna recursos y promueve una cultura preventiva. **Riesgo Legal:** La falta de evidencia de liderazgo debilita la defensa legal en caso de accidentes.',
+    q4: 'El Reglamento Interno de Seguridad y Salud en el Trabajo establece las normas, prohibiciones y sanciones propias de su empresa. **Riesgo Legal:** Su ausencia es una infracción grave sancionable con multas de hasta 10 UIT. Además, invalida cualquier sanción disciplinaria que intente aplicar ante faltas del trabajador.',
+    q5: 'Cada trabajador debe recibir una copia física o digital del Reglamento y firmar un cargo de recepción. **Riesgo Legal:** Sin cargo firmado, el trabajador puede alegar desconocimiento de las normas y la empresa pierde capacidad sancionadora.',
+    q6: 'El Comité de Seguridad es el órgano paritario obligatorio para empresas con 20+ trabajadores; las menores requieren un Supervisor de Seguridad. **Riesgo Legal:** No constituirlo es una infracción muy grave con multas superiores a 25 UIT y puede derivar en responsabilidad penal del empleador ante accidentes fatales.',
+    q7: 'El proceso de elección debe incluir convocatoria, actas de votación y acta de instalación debidamente firmadas. **Riesgo Legal:** Sin documentación del proceso electoral, SUNAFIL puede declarar nulo al Comité o Supervisor.',
+    q8: 'Los miembros del Comité o el Supervisor deben recibir capacitación en temas de seguridad para ejercer correctamente sus funciones. **Riesgo Legal:** Representantes sin formación no pueden cumplir su rol, exponiendo a la empresa a sanciones por gestión deficiente.',
+    q9: 'El Comité o Supervisor debe reunirse mínimo una vez al mes y registrar acuerdos en un Libro de Actas legalizado. **Riesgo Legal:** Sin actas, no hay evidencia de funcionamiento del órgano de vigilancia, lo cual es infracción grave.',
+    q10: 'El estudio de línea base es un diagnóstico inicial que evalúa el estado actual del sistema de gestión de seguridad en la empresa. **Riesgo Legal:** Su omisión impide demostrar una gestión planificada y sistemática.',
+    q11: 'La Matriz de Identificación de Peligros, Evaluación de Riesgos y Controles identifica los peligros y establece los controles para cada puesto. **Riesgo Legal:** Su inexistencia es infracción muy grave. En caso de accidente, la empresa pierde toda defensa legal al no poder demostrar gestión preventiva.',
+    q12: 'La Matriz de Peligros y Riesgos debe actualizarse anualmente o cuando haya cambios en procesos, equipos, incidentes o nueva legislación. **Riesgo Legal:** Una matriz desactualizada equivale a no tenerla, exponiendo a la empresa a multas muy graves.',
+    q13: 'Los trabajadores deben participar activamente en la identificación de peligros de sus propios puestos de trabajo. **Riesgo Legal:** Sin evidencia de participación, SUNAFIL puede cuestionar la validez de toda la evaluación de riesgos.',
+    q14: 'El Mapa de Riesgos es un plano del lugar de trabajo donde se señalan visualmente los peligros identificados. **Riesgo Legal:** Su inexistencia o no exhibición es infracción grave sancionable.',
+    q15: 'El Plan Anual de Seguridad incluye objetivos, metas, actividades y un presupuesto asignado para la gestión de seguridad. **Riesgo Legal:** Sin presupuesto asignado, no hay compromiso demostrable de la empresa con la prevención.',
+    q16: 'El Programa de Capacitaciones debe planificar todas las formaciones en seguridad que recibirán los trabajadores durante el año. **Riesgo Legal:** Sin programa, las capacitaciones se consideran improvisadas y no sistemáticas.',
+    q17: 'La ley exige mínimo 4 capacitaciones anuales en seguridad, incluyendo temas como primeros auxilios, uso de extintores y evacuación. **Riesgo Legal:** No cumplir con las 4 capacitaciones es infracción muy grave con multas de hasta 25 UIT.',
+    q18: 'Todo trabajador nuevo debe recibir una inducción específica de seguridad antes de iniciar sus labores. **Riesgo Legal:** Si un trabajador sin inducción sufre un accidente, la responsabilidad del empleador es agravada.',
+    q19: 'Las capacitaciones deben registrarse con listas de asistencia, temario desarrollado y evaluaciones si aplica. **Riesgo Legal:** Sin registros, las capacitaciones se consideran no realizadas ante una fiscalización.',
+    q20: 'La jerarquía de controles va desde eliminar el peligro hasta usar equipos de protección: Eliminación → Sustitución → Controles de ingeniería → Controles administrativos → Equipos de Protección. **Riesgo Legal:** No aplicar esta jerarquía es infracción muy grave.',
+    q21: 'Los Equipos de Protección Personal protegen al trabajador de riesgos residuales que no pudieron eliminarse por otros medios. **Riesgo Legal:** No proveerlos es infracción muy grave. En caso de accidente sin protección, el empleador asume responsabilidad civil total y posible imputación penal.',
+    q22: 'Debe existir un registro firmado por cada trabajador al recibir sus equipos de protección, indicando tipo, cantidad y fecha. **Riesgo Legal:** Sin registro, no hay prueba de que la empresa cumplió con su obligación de entrega.',
+    q23: 'Los trabajadores deben ser capacitados en el uso, cuidado y mantenimiento correcto de sus equipos de protección. **Riesgo Legal:** Un accidente con equipos mal usados sin capacitación previa responsabiliza al empleador.',
+    q24: 'Los Procedimientos Escritos de Trabajo Seguro describen paso a paso cómo realizar tareas de alto riesgo de forma segura. **Riesgo Legal:** Su ausencia en actividades de alto riesgo es infracción muy grave. La empresa no puede demostrar que el trabajador conocía el método seguro.',
+    q25: 'El Plan de Emergencias establece los procedimientos a seguir ante sismos, incendios, derrames u otras emergencias. **Riesgo Legal:** Su inexistencia es infracción muy grave. Si ocurre una emergencia sin plan, la responsabilidad del empleador es agravada.',
+    q26: 'Las brigadas de emergencia (evacuación, primeros auxilios, contra incendios) deben estar conformadas y entrenadas. **Riesgo Legal:** Brigadas sin conformar o sin entrenamiento evidencian negligencia en la preparación ante emergencias.',
+    q27: 'Los simulacros deben realizarse mínimo 2 veces al año para evaluar y mejorar la respuesta ante emergencias. **Riesgo Legal:** Sin simulacros, no hay evidencia de preparación del personal ante contingencias.',
+    q28: 'Los Exámenes Médicos Ocupacionales (ingreso, periódico y retiro) evalúan la aptitud del trabajador y detectan enfermedades ocupacionales. **Riesgo Legal:** Su omisión es infracción muy grave. Sin ellos, la empresa no puede demostrar que el daño a la salud no fue causado por el trabajo.',
+    q29: 'El monitoreo mide la exposición a agentes físicos (ruido, iluminación), químicos (gases, polvos) y otros en el ambiente laboral. **Riesgo Legal:** Sin monitoreos, la empresa no puede demostrar condiciones de trabajo seguras.',
+    q30: 'Las empresas contratistas también deben cumplir con la normativa de seguridad y la empresa principal debe verificarlo. **Riesgo Legal:** El empleador principal es solidariamente responsable por accidentes de personal de contratistas.',
+    q31: 'Se debe medir y revisar periódicamente el avance de los objetivos establecidos en el Plan Anual de Seguridad. **Riesgo Legal:** Sin seguimiento, el plan es letra muerta y la empresa no demuestra mejora continua.',
+    q32: 'Debe existir un procedimiento claro para investigar accidentes e incidentes, identificar causas y prevenir repeticiones. **Riesgo Legal:** Sin investigación formal, la empresa no puede demostrar que tomó medidas correctivas.',
+    q33: 'La auditoría del Sistema de Gestión es obligatoria cada 2 años para empresas de sectores de alto riesgo. **Riesgo Legal:** No realizarla es infracción grave. Además, la empresa pierde oportunidad de demostrar mejora continua.',
+    q34: 'Registro obligatorio de todos los accidentes de trabajo ocurridos, incluyendo investigación y medidas correctivas. **Riesgo Legal:** No llevar este registro es infracción muy grave. Sin él, no hay trazabilidad de la gestión de accidentes.',
+    q35: 'Registro de los exámenes médicos realizados a los trabajadores con sus resultados y recomendaciones. **Riesgo Legal:** Su ausencia impide demostrar vigilancia de la salud de los trabajadores.',
+    q36: 'Registro de los monitoreos ocupacionales realizados (ruido, iluminación, agentes químicos, etc.). **Riesgo Legal:** Sin este registro, no hay evidencia de las condiciones ambientales de trabajo.',
+    q37: 'Registro de las inspecciones internas de seguridad realizadas en las instalaciones. **Riesgo Legal:** Inspecciones sin registrar se consideran no realizadas ante fiscalización.',
+    q38: 'Registro estadístico de accidentes, incidentes y enfermedades ocupacionales (índices de frecuencia, severidad, etc.). **Riesgo Legal:** Los indicadores permiten demostrar gestión basada en datos y tendencias de mejora.',
+    q39: 'Registro y control de extintores, botiquines, equipos de emergencia y su mantenimiento. **Riesgo Legal:** Equipos de emergencia sin registro de mantenimiento pueden fallar cuando más se necesitan.',
+    q40: 'Registro de todas las inducciones y capacitaciones impartidas a los trabajadores. **Riesgo Legal:** Es la evidencia principal del cumplimiento del deber de capacitar.',
+    q41: 'Registro de las auditorías internas y externas realizadas al sistema de gestión de seguridad. **Riesgo Legal:** Documenta el proceso de mejora continua y cierre de brechas identificadas.'
 };
 
-// Configuración de las 3 fases
+// Configuración de las 3 fases - Framing de Protección Legal
 export const QUESTION_PHASES: Phase[] = [
     {
         id: 1,
-        name: 'Organización y Política',
-        description: 'Estableciendo las bases del Sistema de Gestión SST',
+        name: 'Cimentación de la Protección Legal',
+        description: 'Validando los fundamentos normativos de su Sistema de Gestión',
         questionIds: [
             'q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9',
             'q10', 'q11', 'q12', 'q13', 'q14'
         ],
         points: 100,
         totalPoints: 100,
-        progressMessage: '¡Ganaste 100 puntos! Continúa para desbloquear tu informe.',
-        buttonText: 'Continuar a la siguiente fase'
+        progressMessage: '¡Primera línea de defensa validada! Ha identificado brechas críticas en su estructura normativa.',
+        buttonText: 'Continuar análisis de controles'
     },
     {
         id: 2,
-        name: 'Prevención y Control',
-        description: 'Implementando medidas de protección',
+        name: 'Blindaje Operativo y Control de Riesgos',
+        description: 'Evaluando la efectividad de sus medidas preventivas',
         questionIds: [
             'q15', 'q16', 'q17', 'q18', 'q19', 'q20', 'q21', 'q22',
             'q23', 'q24', 'q25', 'q26', 'q27'
         ],
         points: 200,
         totalPoints: 300,
-        progressMessage: '¡+200 puntos! Ya llevas 300. Solo una fase más para tu recompensa.',
-        buttonText: 'Continuar a la siguiente fase'
+        progressMessage: 'Controles operativos evaluados. Su mapa de vulnerabilidades toma forma.',
+        buttonText: 'Finalizar auditoría de registros'
     },
     {
         id: 3,
-        name: 'Vigilancia y Mejora',
-        description: 'Monitoreando y mejorando continuamente',
+        name: 'Estrategia de Defensa y Mejora Continua',
+        description: 'Verificando su capacidad de demostrar cumplimiento',
         questionIds: [
             'q28', 'q29', 'q30', 'q31', 'q32', 'q33', 'q34', 'q35',
             'q36', 'q37', 'q38', 'q39', 'q40', 'q41'
         ],
         points: 300,
         totalPoints: 600,
-        progressMessage: '¡Felicitaciones! Has acumulado 600 puntos y desbloqueaste tu informe de diagnóstico SST.',
-        buttonText: 'Canjea ahora tu informe'
+        progressMessage: 'Auditoría completada. Su Mapa de Protección de Riesgos está listo.',
+        buttonText: 'Descargar Mapa de Protección'
     }
 ];
 

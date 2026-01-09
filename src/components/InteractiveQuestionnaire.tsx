@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { CompanyData, QuestionnaireData } from './SSTDiagnosis';
 import { ChevronLeft, Star, HelpCircle, X } from 'lucide-react';
 import { PhaseCompletionModal } from './PhaseCompletionModal';
+import { RiskExposureWidget } from './RiskExposureWidget';
+import { HeaderRiskWidget } from './HeaderRiskWidget';
+import { useRiskCalculator } from '@/hooks/useRiskCalculator';
 import {
   QUESTIONS,
   QUESTION_TOOLTIPS,
@@ -31,6 +34,12 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
   const [showConfetti, setShowConfetti] = useState(false);
   const [prevPoints, setPrevPoints] = useState(0);
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(true);
+
+  // Loss Salience: Track previous risk for animation triggers
+  const prevRiskRef = useRef(0);
+
+  // Ref para guardar las respuestas finales cuando se completa la última fase
+  const finalAnswersRef = useRef<QuestionnaireData | null>(null);
 
   // Obtener fases filtradas por tipo de empresa
   const phases = useMemo(() =>
@@ -77,6 +86,22 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
     return points;
   }, [phases, phaseInfo, currentPhase]);
 
+  // Loss Salience: Calcular exposición a riesgo de multas SUNAFIL
+  const { totalRiskExposure, lastAddedFine } = useRiskCalculator(
+    answers as Record<string, 'si' | 'no'>,
+    companyData.numeroTrabajadores,
+    companyData.tipoEmpresa,
+    prevRiskRef.current
+  );
+
+  // Detectar si el riesgo está aumentando
+  const isRiskIncreasing = totalRiskExposure > prevRiskRef.current;
+
+  // Actualizar ref de riesgo previo después de cada respuesta
+  useEffect(() => {
+    prevRiskRef.current = totalRiskExposure;
+  }, [totalRiskExposure]);
+
   const handleAnswer = (answer: 'si' | 'no') => {
     if (!currentQuestionId) return;
 
@@ -93,6 +118,12 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
           // Siempre mostrar modal al completar fase
           setCompletedPhase(currentPhase);
           setShowPhaseModal(true);
+
+          // Si es la última fase, guardar las respuestas en el ref
+          // para asegurar que onComplete las reciba correctamente
+          if (currentPhase.id === phases.length) {
+            finalAnswersRef.current = newAnswers;
+          }
         } else {
           // Continuar a siguiente pregunta de la misma fase
           setCurrentQuestionIndex(prev => prev + 1);
@@ -109,7 +140,9 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
 
     // Si es la última fase, enviar datos y pasar a confirmación
     if (completedPhase && completedPhase.id === phases.length) {
-      onComplete(answers);
+      // Usar las respuestas guardadas en el ref para asegurar que incluyan la última respuesta
+      const answersToSend = finalAnswersRef.current || answers;
+      onComplete(answersToSend);
     } else {
       setCurrentQuestionIndex(prev => prev + 1);
     }
@@ -142,6 +175,13 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
 
   return (
     <div className="min-h-[100dvh] overflow-x-hidden">
+      {/* Loss Salience: Widget de Riesgo Acumulado */}
+      <RiskExposureWidget
+        amount={totalRiskExposure}
+        isIncreasing={isRiskIncreasing}
+        lastAddedFine={lastAddedFine}
+      />
+
       {/* Header con progreso - Diseño mejorado */}
       <div className="fixed top-0 left-0 w-full z-40 bg-white/95 backdrop-blur-sm border-b border-border shadow-sm">
         {/* Barra de progreso animada con gradiente */}
@@ -153,8 +193,8 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
         </div>
 
         {/* Info de fase y progreso */}
-        <div className="px-4 py-3 lg:py-4">
-          <div className="flex items-center justify-between max-w-6xl mx-auto">
+        <div className="px-6 lg:px-10 xl:px-16 py-3 lg:py-4">
+          <div className="flex items-center justify-between">
             {/* Logo + Nombre de fase */}
             <div className="flex items-center gap-3 lg:gap-4">
               <img
@@ -173,8 +213,8 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
               </div>
             </div>
 
-            {/* Progreso + Puntos */}
-            <div className="flex items-center gap-4 lg:gap-6">
+            {/* Progreso + Riesgo + Usuario */}
+            <div className="flex items-center gap-3 lg:gap-5">
               {/* Info de progreso */}
               <div className="text-right hidden md:block">
                 <div className="text-sm lg:text-base font-semibold text-foreground">
@@ -185,14 +225,38 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
                 </div>
               </div>
 
-              {/* Badge de Puntos en Header */}
-              <div className="flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 bg-gradient-to-r from-primary to-blue-600 rounded-full shadow-md">
-                <Star className="w-4 h-4 lg:w-5 lg:h-5 text-white fill-white" />
-                <span className="text-white font-bold text-sm lg:text-base tabular-nums">
-                  {currentPoints}
-                </span>
-                <span className="text-white/80 text-xs lg:text-sm font-medium">pts</span>
-              </div>
+              {/* Widget de Riesgo en Header (solo desktop, solo si hay riesgo) */}
+              <HeaderRiskWidget
+                amount={totalRiskExposure}
+                isIncreasing={isRiskIncreasing}
+                lastAddedFine={lastAddedFine}
+              />
+
+              {/* Badge de Usuario - SIEMPRE VISIBLE */}
+              {(companyData.nombre || companyData.empresa) && (
+                <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/80 rounded-full border border-border shadow-sm">
+                  {/* Ícono de usuario */}
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+
+                  {/* Info */}
+                  <div className="text-left">
+                    {companyData.nombre && (
+                      <div className="text-sm font-semibold text-foreground truncate max-w-28">
+                        {companyData.nombre}
+                      </div>
+                    )}
+                    {companyData.empresa && (
+                      <div className="text-xs text-muted-foreground truncate max-w-28">
+                        {companyData.empresa}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -240,9 +304,21 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
             {showTooltip && QUESTION_TOOLTIPS[currentQuestionId] && (
               <div className="absolute top-14 right-3 sm:right-4 left-3 sm:left-auto sm:w-80 bg-primary text-white p-4 rounded-xl shadow-xl z-10 text-left animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm leading-relaxed">
-                    💡 {QUESTION_TOOLTIPS[currentQuestionId]}
-                  </p>
+                  <div className="text-sm leading-relaxed">
+                    {(() => {
+                      const text = QUESTION_TOOLTIPS[currentQuestionId];
+                      const parts = text.split('**Riesgo Legal:**');
+                      if (parts.length === 2) {
+                        return (
+                          <>
+                            <p>💡 {parts[0].trim()}</p>
+                            <p className="mt-2"><strong>Riesgo Legal:</strong> {parts[1].trim()}</p>
+                          </>
+                        );
+                      }
+                      return <p>💡 {text}</p>;
+                    })()}
+                  </div>
                   <button
                     onClick={() => setShowTooltip(false)}
                     className="shrink-0 p-1 hover:bg-white/20 rounded-full transition-colors"
@@ -282,8 +358,8 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
 
             {/* Navigation */}
             <div className="mt-8 flex justify-between items-center">
-              {/* Mostrar botón solo si no es la primera pregunta */}
-              {currentQuestionIndex > 0 ? (
+              {/* Mostrar botón solo si NO es la primera pregunta de la fase actual */}
+              {phaseInfo.questionIndex > 0 ? (
                 <button
                   onClick={handleBack}
                   className="sb-button-secondary"

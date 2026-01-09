@@ -37,6 +37,147 @@
                         "type": "number",
                         "label": "Maximum number of results"
                     }
+                ],
+                "interface": [
+                    {
+                        "name": "nombre_lead",
+                        "type": "text"
+                    },
+                    {
+                        "name": "empresa",
+                        "type": "text"
+                    },
+                    {
+                        "name": "cargo_lead",
+                        "type": "text"
+                    },
+                    {
+                        "name": "numero_trabajadores",
+                        "type": "number"
+                    },
+                    {
+                        "name": "tipo_empresa",
+                        "type": "text"
+                    },
+                    {
+                        "name": "severidad_maxima",
+                        "type": "text"
+                    },
+                    {
+                        "name": "monto_multa_soles",
+                        "type": "number"
+                    },
+                    {
+                        "name": "total_incumplimientos",
+                        "type": "number"
+                    },
+                    {
+                        "name": "resultado_completo_json",
+                        "spec": [
+                            {
+                                "name": "lead",
+                                "spec": [
+                                    {
+                                        "name": "nombre",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "name": "empresa",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "name": "cargo",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "name": "numero_trabajadores",
+                                        "type": "number"
+                                    },
+                                    {
+                                        "name": "tipo_empresa",
+                                        "type": "text"
+                                    }
+                                ],
+                                "type": "collection"
+                            },
+                            {
+                                "name": "diagnostico",
+                                "spec": [
+                                    {
+                                        "name": "severidad_maxima",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "name": "total_incumplimientos",
+                                        "type": "number"
+                                    },
+                                    {
+                                        "name": "resumen_hallazgos",
+                                        "spec": [
+                                            {
+                                                "name": "Leves",
+                                                "type": "number"
+                                            },
+                                            {
+                                                "name": "Grave",
+                                                "type": "number"
+                                            },
+                                            {
+                                                "name": "Muy Grave",
+                                                "type": "number"
+                                            }
+                                        ],
+                                        "type": "collection"
+                                    },
+                                    {
+                                        "name": "detalle_hallazgos",
+                                        "spec": {
+                                            "spec": [
+                                                {
+                                                    "name": "severidad",
+                                                    "type": "text"
+                                                },
+                                                {
+                                                    "name": "articulo",
+                                                    "type": "text"
+                                                },
+                                                {
+                                                    "name": "descripcion",
+                                                    "type": "text"
+                                                }
+                                            ],
+                                            "type": "collection"
+                                        },
+                                        "type": "array"
+                                    }
+                                ],
+                                "type": "collection"
+                            },
+                            {
+                                "name": "multa",
+                                "spec": [
+                                    {
+                                        "name": "monto_final_soles",
+                                        "type": "number"
+                                    }
+                                ],
+                                "type": "collection"
+                            }
+                        ],
+                        "type": "collection"
+                    },
+                    {
+                        "name": "email_lead",
+                        "type": "text"
+                    },
+                    {
+                        "name": "telefono_lead",
+                        "type": "text"
+                    },
+                    {
+                        "name": "created_at",
+                        "type": "text"
+                    }
                 ]
             }
         },
@@ -1194,12 +1335,12 @@
                                 "__IMTCONN__": 4616775
                             },
                             "mapper": {
+                                "data": "{{22.fileContent}}",
                                 "select": "value",
-                                "filename": "{{21.filename}}",
-                                "data": "{{21.data}}",
                                 "convert": false,
-                                "destination": "drive",
-                                "folderId": "/1smoyaensMKdjLClW-MKzmXkj35JMTLad"
+                                "filename": "{{22.filename}}",
+                                "folderId": "/1smoyaensMKdjLClW-MKzmXkj35JMTLad",
+                                "destination": "drive"
                             },
                             "metadata": {
                                 "designer": {
@@ -1207,27 +1348,27 @@
                                     "y": 144
                                 },
                                 "restore": {
-                                    "parameters": {
-                                        "__IMTCONN__": {
-                                            "label": "GDrive 2026 (informesauditoriasb@gmail.com)",
-                                            "data": {
-                                                "scoped": "true",
-                                                "connection": "google-restricted"
-                                            }
-                                        }
-                                    },
                                     "expect": {
                                         "select": {
                                             "label": "Select from the list"
-                                        },
-                                        "destination": {
-                                            "label": "My Drive"
                                         },
                                         "folderId": {
                                             "mode": "chose",
                                             "path": [
                                                 "INFORMES AUDITORIAS"
                                             ]
+                                        },
+                                        "destination": {
+                                            "label": "My Drive"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google-restricted"
+                                            },
+                                            "label": "GDrive 2026 (informesauditoriasb@gmail.com)"
                                         }
                                     }
                                 },
@@ -1302,13 +1443,13 @@
                             "module": "google-drive:getAFile",
                             "version": 4,
                             "parameters": {
-                                "__IMTCONN__": 4598435
+                                "__IMTCONN__": 4616775
                             },
                             "mapper": {
                                 "file": "{{25.id}}",
                                 "select": "map",
                                 "formatDrawings": "image/jpeg",
-                                "formatDocuments": "application/pdf",
+                                "formatDocuments": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                 "formatSpreadsheets": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                 "formatPresentations": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
                             },
@@ -1326,7 +1467,7 @@
                                             "label": "JPEG"
                                         },
                                         "formatDocuments": {
-                                            "label": "PDF"
+                                            "label": "MS Word Document"
                                         },
                                         "formatSpreadsheets": {
                                             "label": "MS Excel"
@@ -1341,7 +1482,7 @@
                                                 "scoped": "true",
                                                 "connection": "google-restricted"
                                             },
-                                            "label": "My Google Restricted connection (informesauditoriasb@gmail.com)"
+                                            "label": "GDrive 2026 (informesauditoriasb@gmail.com)"
                                         }
                                     }
                                 },
@@ -1429,8 +1570,7 @@
                                         "label": "File ID",
                                         "required": true
                                     }
-                                ],
-                                "advanced": true
+                                ]
                             }
                         },
                         {
@@ -1441,8 +1581,14 @@
                                 "__IMTCONN__": 4598443
                             },
                             "mapper": {
-                                "from": "drive",
                                 "mode": "select",
+                                "insertUnformatted": false,
+                                "valueInputOption": "USER_ENTERED",
+                                "insertDataOption": "INSERT_ROWS",
+                                "from": "drive",
+                                "spreadsheetId": "/111zPChZYzaKWoPrruaGixbu-RDq8yaxamhSu9Kn6Ofs",
+                                "sheetId": "Hoja 1",
+                                "includesHeaders": true,
                                 "values": {
                                     "0": "{{32.created_at}}",
                                     "1": "{{32.empresa}}",
@@ -1453,14 +1599,9 @@
                                     "6": "{{32.monto_multa_soles}}",
                                     "7": "{{32.numero_trabajadores}}",
                                     "8": "{{32.total_incumplimientos}}",
-                                    "9": "{{25.webViewLink}}"
-                                },
-                                "sheetId": "Hoja 1",
-                                "spreadsheetId": "/111zPChZYzaKWoPrruaGixbu-RDq8yaxamhSu9Kn6Ofs",
-                                "includesHeaders": true,
-                                "insertDataOption": "INSERT_ROWS",
-                                "valueInputOption": "USER_ENTERED",
-                                "insertUnformatted": false
+                                    "9": "{{25.webViewLink}}",
+                                    "10": "{{join(map(32.resultado_completo_json.diagnostico.detalle_hallazgos; \"item\"; 32.resultado_completo_json.diagnostico.detalle_hallazgos[].severidad + \" | \" + 32.resultado_completo_json.diagnostico.detalle_hallazgos[].articulo + \"| \" + 32.resultado_completo_json.diagnostico.detalle_hallazgos[].descripcion); newline)}}"
+                                }
                             },
                             "metadata": {
                                 "designer": {
@@ -1468,23 +1609,42 @@
                                     "y": 134
                                 },
                                 "restore": {
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "label": "My Google connection (informesauditoriasb@gmail.com)",
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            }
+                                        }
+                                    },
                                     "expect": {
-                                        "from": {
-                                            "label": "My Drive"
-                                        },
                                         "mode": {
                                             "label": "Search by path"
                                         },
-                                        "sheetId": {
-                                            "label": "Hoja 1"
+                                        "insertUnformatted": {
+                                            "mode": "chose"
+                                        },
+                                        "valueInputOption": {
+                                            "mode": "chose",
+                                            "label": "User entered"
+                                        },
+                                        "insertDataOption": {
+                                            "mode": "chose",
+                                            "label": "Insert rows"
+                                        },
+                                        "from": {
+                                            "label": "My Drive"
                                         },
                                         "spreadsheetId": {
                                             "path": [
                                                 "Registro de Diagnósticos SST"
                                             ]
                                         },
+                                        "sheetId": {
+                                            "label": "Hoja 1"
+                                        },
                                         "includesHeaders": {
-                                            "label": "Yes",
                                             "nested": [
                                                 {
                                                     "name": "values",
@@ -1623,27 +1783,8 @@
                                                     "type": "collection",
                                                     "label": "Values"
                                                 }
-                                            ]
-                                        },
-                                        "insertDataOption": {
-                                            "mode": "chose",
-                                            "label": "Insert rows"
-                                        },
-                                        "valueInputOption": {
-                                            "mode": "chose",
-                                            "label": "User entered"
-                                        },
-                                        "insertUnformatted": {
-                                            "mode": "chose"
-                                        }
-                                    },
-                                    "parameters": {
-                                        "__IMTCONN__": {
-                                            "data": {
-                                                "scoped": "true",
-                                                "connection": "google"
-                                            },
-                                            "label": "My Google connection (informesauditoriasb@gmail.com)"
+                                            ],
+                                            "label": "Yes"
                                         }
                                     }
                                 },
@@ -1736,6 +1877,8 @@
                                     },
                                     {
                                         "name": "values",
+                                        "type": "collection",
+                                        "label": "Values",
                                         "spec": [
                                             {
                                                 "name": "0",
@@ -1867,9 +2010,7 @@
                                                 "type": "text",
                                                 "label": "(Z)"
                                             }
-                                        ],
-                                        "type": "collection",
-                                        "label": "Values"
+                                        ]
                                     }
                                 ]
                             }
@@ -1879,35 +2020,35 @@
                             "module": "email:ActionSendEmail",
                             "version": 7,
                             "parameters": {
+                                "folder": "INBOX.Sent",
                                 "account": 4461526,
-                                "saveAfterSent": true,
                                 "accountImap": 4461528,
-                                "folder": "INBOX.Sent"
+                                "saveAfterSent": true
                             },
                             "mapper": {
+                                "cc": [],
                                 "to": [
                                     "{{32.email_lead}}",
                                     "contactenos@supportbrigades.com"
                                 ],
-                                "subject": "Informe de Diagnóstico SST para {{32.empresa}}",
-                                "contentType": "html",
-                                "attachments": [
-                                    {
-                                        "fileName": "{{24.name}}",
-                                        "data": "{{24.data}}",
-                                        "cid": ""
-                                    }
-                                ],
-                                "cc": [],
                                 "bcc": [],
                                 "from": "",
+                                "html": "<p>Hola <strong>{{32.nombre_lead}}</strong>,</p>\n\n<p>Gracias por utilizar nuestra herramienta de diagnóstico.</p>\n\n<p>Adjunto a este correo encontrarás el informe preliminar con los resultados y un plan de acción recomendado para tu empresa <strong>{{32.empresa}}</strong>.</p>\n\n<p>Un especialista se pondrá en contacto contigo para conversar sobre los siguientes pasos.</p>\n\n<p>Saludos cordiales,</p>\n\n<p><strong>El Equipo de Support Brigades.</strong></p>",
                                 "sender": "",
+                                "headers": [],
                                 "replyTo": "",
+                                "subject": "Informe de Diagnóstico SST para {{32.empresa}}",
+                                "priority": "normal",
                                 "inReplyTo": "",
                                 "references": [],
-                                "priority": "normal",
-                                "headers": [],
-                                "html": "<p>Hola <strong>{{32.nombre_lead}}</strong>,</p>\n\n<p>Gracias por utilizar nuestra herramienta de diagnóstico.</p>\n\n<p>Adjunto a este correo encontrarás el informe preliminar con los resultados y un plan de acción recomendado para tu empresa <strong>{{32.empresa}}</strong>.</p>\n\n<p>Un especialista se pondrá en contacto contigo para conversar sobre los siguientes pasos.</p>\n\n<p>Saludos cordiales,</p>\n\n<p><strong>El Equipo de Support Brigades.</strong></p>"
+                                "attachments": [
+                                    {
+                                        "cid": "",
+                                        "data": "{{24.data}}",
+                                        "fileName": "{{24.name}}"
+                                    }
+                                ],
+                                "contentType": "html"
                             },
                             "metadata": {
                                 "designer": {
@@ -1915,29 +2056,10 @@
                                     "y": 126
                                 },
                                 "restore": {
-                                    "parameters": {
-                                        "account": {
-                                            "label": "My Others (SMTP) connection (SMTP calculadora.multassst@supportbrigades.com)",
-                                            "data": {
-                                                "scoped": "true",
-                                                "connection": "smtp"
-                                            }
-                                        },
-                                        "saveAfterSent": {
-                                            "label": "Yes"
-                                        },
-                                        "accountImap": {
-                                            "label": "My Others (IMAP) connection (IMAP calculadora.multassst@supportbrigades.com)",
-                                            "data": {
-                                                "scoped": "true",
-                                                "connection": "imap"
-                                            }
-                                        },
-                                        "folder": {
-                                            "label": "Sent"
-                                        }
-                                    },
                                     "expect": {
+                                        "cc": {
+                                            "mode": "chose"
+                                        },
                                         "to": {
                                             "mode": "chose",
                                             "items": [
@@ -1945,8 +2067,14 @@
                                                 null
                                             ]
                                         },
-                                        "contentType": {
-                                            "label": "HTML"
+                                        "bcc": {
+                                            "mode": "chose"
+                                        },
+                                        "priority": {
+                                            "label": "Normal"
+                                        },
+                                        "references": {
+                                            "mode": "chose"
                                         },
                                         "attachments": {
                                             "mode": "chose",
@@ -1954,17 +2082,30 @@
                                                 null
                                             ]
                                         },
-                                        "cc": {
-                                            "mode": "chose"
+                                        "contentType": {
+                                            "label": "HTML"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "folder": {
+                                            "label": "Sent"
                                         },
-                                        "bcc": {
-                                            "mode": "chose"
+                                        "account": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "smtp"
+                                            },
+                                            "label": "My Others (SMTP) connection (SMTP calculadora.multassst@supportbrigades.com)"
                                         },
-                                        "references": {
-                                            "mode": "chose"
+                                        "accountImap": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "imap"
+                                            },
+                                            "label": "My Others (IMAP) connection (IMAP calculadora.multassst@supportbrigades.com)"
                                         },
-                                        "priority": {
-                                            "label": "Normal"
+                                        "saveAfterSent": {
+                                            "label": "Yes"
                                         }
                                     }
                                 },
@@ -2006,15 +2147,15 @@
                                 "expect": [
                                     {
                                         "name": "to",
-                                        "type": "array",
-                                        "label": "To",
-                                        "required": true,
                                         "spec": {
                                             "name": "value",
                                             "type": "email",
                                             "label": "Email address",
                                             "required": true
-                                        }
+                                        },
+                                        "type": "array",
+                                        "label": "To",
+                                        "required": true
                                     },
                                     {
                                         "name": "subject",
@@ -2035,49 +2176,49 @@
                                     },
                                     {
                                         "name": "attachments",
-                                        "type": "array",
-                                        "label": "Attachments",
                                         "spec": [
                                             {
                                                 "name": "fileName",
-                                                "label": "File name",
                                                 "type": "filename",
+                                                "label": "File name",
                                                 "required": true,
                                                 "semantic": "file:name"
                                             },
                                             {
                                                 "name": "data",
-                                                "label": "Data",
                                                 "type": "buffer",
+                                                "label": "Data",
                                                 "required": true,
                                                 "semantic": "file:data"
                                             },
                                             {
                                                 "name": "cid",
-                                                "label": "Content-ID",
-                                                "type": "text"
+                                                "type": "text",
+                                                "label": "Content-ID"
                                             }
-                                        ]
+                                        ],
+                                        "type": "array",
+                                        "label": "Attachments"
                                     },
                                     {
                                         "name": "cc",
-                                        "type": "array",
-                                        "label": "Copy recipient",
                                         "spec": {
                                             "name": "value",
                                             "type": "email",
                                             "label": "Email address"
-                                        }
+                                        },
+                                        "type": "array",
+                                        "label": "Copy recipient"
                                     },
                                     {
                                         "name": "bcc",
-                                        "type": "array",
-                                        "label": "Blind copy recipient",
                                         "spec": {
                                             "name": "value",
                                             "type": "email",
                                             "label": "Email address"
-                                        }
+                                        },
+                                        "type": "array",
+                                        "label": "Blind copy recipient"
                                     },
                                     {
                                         "name": "from",
@@ -2101,14 +2242,14 @@
                                     },
                                     {
                                         "name": "references",
-                                        "type": "array",
-                                        "label": "References",
                                         "spec": {
+                                            "name": "value",
                                             "type": "text",
                                             "label": "Reference",
-                                            "required": true,
-                                            "name": "value"
-                                        }
+                                            "required": true
+                                        },
+                                        "type": "array",
+                                        "label": "References"
                                     },
                                     {
                                         "name": "priority",
@@ -2124,22 +2265,22 @@
                                     },
                                     {
                                         "name": "headers",
-                                        "type": "array",
-                                        "label": "Headers",
                                         "spec": [
                                             {
                                                 "name": "key",
-                                                "label": "Key",
                                                 "type": "text",
+                                                "label": "Key",
                                                 "required": true
                                             },
                                             {
                                                 "name": "value",
-                                                "label": "Value",
                                                 "type": "text",
+                                                "label": "Value",
                                                 "required": true
                                             }
-                                        ]
+                                        ],
+                                        "type": "array",
+                                        "label": "Headers"
                                     },
                                     {
                                         "name": "html",
