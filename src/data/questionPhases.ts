@@ -202,6 +202,39 @@ export const QUESTION_TOOLTIPS: Record<string, string> = {
     q41: 'Registro de las auditorías internas y externas realizadas al sistema de gestión de seguridad. **Riesgo Legal:** Documenta el proceso de mejora continua y cierre de brechas identificadas.'
 };
 
+// ============================================
+// MENSAJES DINÁMICOS POR FASE - CONTEXTUALES
+// ============================================
+
+// Mensajes según si hay infracciones o no en la fase
+export const PHASE_MESSAGES: Record<number, { withInfractions: string; noInfractions: string }> = {
+    1: {
+        withInfractions: '¡Primera línea de defensa validada! Ha identificado brechas críticas en su estructura normativa.',
+        noInfractions: '¡Excelente! Su estructura normativa está sólidamente cimentada. Fundamentos legales verificados.'
+    },
+    2: {
+        withInfractions: 'Controles operativos evaluados. Su mapa de vulnerabilidades toma forma.',
+        noInfractions: '¡Impecable! Sus controles operativos están correctamente implementados.'
+    },
+    3: {
+        withInfractions: 'Auditoría completada. Su Mapa de Protección de Riesgos está listo.',
+        noInfractions: '¡Felicitaciones! Su Sistema de Gestión demuestra un alto nivel de madurez.'
+    }
+};
+
+// Helper para obtener mensaje según infracciones
+export function getPhaseMessage(phaseId: number, hasInfractions: boolean): string {
+    const messages = PHASE_MESSAGES[phaseId];
+    if (!messages) return '';
+    return hasInfractions ? messages.withInfractions : messages.noInfractions;
+}
+
+// Texto dinámico del botón de Fase 3 según infracciones GLOBALES
+export const PHASE3_BUTTON_TEXT = {
+    noInfractions: 'Descargar Recursos Gratuitos',
+    withInfractions: 'Descargar Mapa de Protección'
+};
+
 // Configuración de las 3 fases - Framing de Protección Legal
 export const QUESTION_PHASES: Phase[] = [
     {
