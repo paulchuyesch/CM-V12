@@ -39,6 +39,8 @@ export const SSTDiagnosis: React.FC = () => {
     tipoEmpresa: '',
   });
   const [questionnaireData, setQuestionnaireData] = useState<QuestionnaireData>({});
+  const [calculatedFine, setCalculatedFine] = useState<number>(0);
+  const [hasInfractions, setHasInfractions] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,9 +49,13 @@ export const SSTDiagnosis: React.FC = () => {
     setCurrentStep(2);
   };
 
-  const handleQuestionnaireComplete = async (data: QuestionnaireData) => {
+  const handleQuestionnaireComplete = async (data: QuestionnaireData, totalFine: number, infractions: boolean) => {
     console.log("Estado de companyData al iniciar envío:", companyData);
+    console.log("Multa calculada:", totalFine);
+    console.log("Tiene infracciones:", infractions);
     setQuestionnaireData(data);
+    setCalculatedFine(totalFine);
+    setHasInfractions(infractions);
     setIsLoading(true);
     setError(null);
 
@@ -136,6 +142,13 @@ export const SSTDiagnosis: React.FC = () => {
       {currentStep === 3 && (
         <ConfirmationPage
           email={companyData.email}
+          empresa={companyData.empresa}
+          nombre={companyData.nombre}
+          cargo={companyData.cargo}
+          numeroTrabajadores={companyData.numeroTrabajadores}
+          tipoEmpresa={companyData.tipoEmpresa}
+          multaPotencial={calculatedFine}
+          hasInfractions={hasInfractions}
           onRestart={handleRestart}
         />
       )}

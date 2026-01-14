@@ -10,12 +10,14 @@ import {
   QUESTION_TOOLTIPS,
   getPhasesForCompanyType,
   getQuestionIndexInPhase,
+  getPhaseMessage,
+  PHASE3_BUTTON_TEXT,
   Phase
 } from '@/data/questionPhases';
 
 interface InteractiveQuestionnaireProps {
   companyData: CompanyData;
-  onComplete: (data: QuestionnaireData) => void;
+  onComplete: (data: QuestionnaireData, totalFine: number, hasInfractions: boolean) => void;
   onBack: () => void;
 }
 
@@ -34,6 +36,8 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
   const [showConfetti, setShowConfetti] = useState(false);
   const [prevPoints, setPrevPoints] = useState(0);
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(true);
+  const [phaseHasInfractions, setPhaseHasInfractions] = useState(false);
+  const [hasGlobalInfractions, setHasGlobalInfractions] = useState(false);
 
   // Loss Salience: Track previous risk for animation triggers
   const prevRiskRef = useRef(0);
@@ -115,14 +119,23 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
         const isLastInPhase = phaseInfo.questionIndex === phaseInfo.totalInPhase - 1;
 
         if (isLastInPhase) {
+          // Calcular si hay infracciones en esta fase
+          const phaseInfractions = currentPhase.questionIds.filter(
+            qId => newAnswers[qId] === 'no'
+          ).length;
+          setPhaseHasInfractions(phaseInfractions > 0);
+
           // Siempre mostrar modal al completar fase
           setCompletedPhase(currentPhase);
           setShowPhaseModal(true);
 
           // Si es la última fase, guardar las respuestas en el ref
-          // para asegurar que onComplete las reciba correctamente
+          // y calcular infracciones globales para el botón dinámico
           if (currentPhase.id === phases.length) {
             finalAnswersRef.current = newAnswers;
+            // Calcular infracciones en TODO el diagnóstico (cualquier "no" = infracción)
+            const totalInfractions = Object.values(newAnswers).filter(a => a === 'no').length;
+            setHasGlobalInfractions(totalInfractions > 0);
           }
         } else {
           // Continuar a siguiente pregunta de la misma fase
@@ -142,7 +155,7 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
     if (completedPhase && completedPhase.id === phases.length) {
       // Usar las respuestas guardadas en el ref para asegurar que incluyan la última respuesta
       const answersToSend = finalAnswersRef.current || answers;
-      onComplete(answersToSend);
+      onComplete(answersToSend, totalRiskExposure, hasGlobalInfractions);
     } else {
       setCurrentQuestionIndex(prev => prev + 1);
     }
@@ -418,8 +431,12 @@ export const InteractiveQuestionnaire: React.FC<InteractiveQuestionnaireProps> =
           totalPhases={phases.length}
           points={completedPhase.points}
           totalPoints={completedPhase.totalPoints}
-          message={completedPhase.progressMessage}
-          buttonText={completedPhase.buttonText}
+          message={getPhaseMessage(completedPhase.id, phaseHasInfractions)}
+          buttonText={
+            completedPhase.id === phases.length
+              ? (hasGlobalInfractions ? PHASE3_BUTTON_TEXT.withInfractions : PHASE3_BUTTON_TEXT.noInfractions)
+              : completedPhase.buttonText
+          }
           isLastPhase={completedPhase.id === phases.length}
           onContinue={handlePhaseModalContinue}
         />
