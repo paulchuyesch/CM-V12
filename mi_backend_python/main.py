@@ -154,7 +154,14 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Permitir la comunicación con tu app de React (CORS)
-origins = [ "https://calculadora.supportbrigades.com", "http://localhost:8080", "http://localhost:8081", "http://localhost:5173" ]
+# Configuración dinámica: lee ALLOWED_ORIGINS del entorno (separado por comas)
+ALLOWED_ORIGINS = os.environ.get(
+    "ALLOWED_ORIGINS", 
+    "http://localhost:5173,http://localhost:8080,http://localhost:8081,https://calculadora.supportbrigades.com"
+)
+origins = [origin.strip() for origin in ALLOWED_ORIGINS.split(",")]
+logging.info(f"🔒 CORS configurado para: {origins}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
