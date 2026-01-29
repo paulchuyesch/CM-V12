@@ -1,6 +1,5 @@
-# Calculadora de Multas y Sanciones SST
-
-Este proyecto es una herramienta para calcular multas y sanciones en el ámbito de Seguridad y Salud en el Trabajo (SST), desarrollado por **Paul Chuyes**.
+# Calculadora 
+Este proyecto es una herramienta para calcular, desarrollado por **Paul Chuyes**.
 
 ## Tecnologías Utilizadas
 
